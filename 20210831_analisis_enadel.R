@@ -78,14 +78,33 @@ enadel %>%
 directorio$var_label[43]
 
 cat_rub = enadel %>% extract_vallab("Q24")
+cat_q34 = lapply(paste0("Q34A",1:8), function(x) enadel %>% extract_vallab(x))
 
-# Cruce entre 
+enadel$Q34A1 %>% attr('labels')
 
-enadel %>% 
+# Cruce entre principales 
+
+
+cruces = list(c("Q24", "Q34A1"),c("Q24", "Q34A2"),
+              c("Q24", "Q34A3"), c("Q24", "Q34A4"),
+              c("Q24", "Q34A5"), c("Q24", "Q34A6"),
+              c("Q24", "Q34A7"), c("Q24", "Q34A8"))
+
+
+lapply(1:8, function(x) enadel %>% 
   group_by(Q24) %>% 
   mutate(total = n()) %>% 
-  group_by(Q33, Q24) %>% 
-  summarise(prop = n()/total[1])
+  group_by_at(cruces[[x]], .drop = TRUE) %>% 
+  summarise(prop = n()/total[1]) %>% 
+    filter(eval(str2expression(paste0(paste0(cruces[[x]][2], " == 1"))))) %>% 
+    rename(id = Q24) %>% 
+    left_join(cat_rub) %>% 
+    rename(sector = id, id =eval(paste0(cruces[[x]][2]))) %>% 
+    left_join(cat_q34[[x]]) %>% 
+    rename(dificultades = eval(paste0(cruces[[x]][2])))
+  ) %>% bind_rows() %>% View
+  
+  
 
 
 
